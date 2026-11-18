@@ -6,6 +6,7 @@
  * Bloco 3 - Render do tabuleiro
  * Bloco 4 - Render das pistas
  * Bloco 5 - Interacao: digitacao, navegacao e palavra ativa
+ * Bloco 6 - Regras: conferencia, placar e reinicio
  */
 
 'use strict';
@@ -204,10 +205,14 @@ const MODELO = construirModelo(PALAVRAS);
 
 const elementos = {
   tabuleiro: document.getElementById('tabuleiro'),
+  placar: document.getElementById('placar'),
   placarNumero: document.getElementById('placar-numero'),
   placarTotal: document.getElementById('placar-total'),
   pistasHorizontais: document.getElementById('pistas-horizontais'),
   pistasVerticais: document.getElementById('pistas-verticais'),
+  mensagem: document.getElementById('mensagem'),
+  conferir: document.getElementById('btn-conferir'),
+  reiniciar: document.getElementById('btn-reiniciar'),
 };
 
 /** Guarda o <input> de cada casa jogavel, indexado por "linha,coluna". */
@@ -308,7 +313,10 @@ function criarItemPista(palavra) {
   tamanho.className = 'pista__tamanho';
   tamanho.textContent = `${palavra.resposta.length} letras`;
 
-  item.append(numero, texto, tamanho);
+  const estadoPista = document.createElement('span');
+  estadoPista.className = 'pista__estado';
+
+  item.append(numero, texto, tamanho, estadoPista);
   itensPista.set(palavra.id, item);
   return item;
 }
@@ -473,6 +481,7 @@ function escrever(chave, letra) {
   if (!entrada) return;
   entrada.value = letra;
   entrada.parentElement.classList.toggle('casa--preenchida', letra !== '');
+  descartarConferencia(chave);
 }
 
 function aoDigitar(evento) {
@@ -610,12 +619,160 @@ function registrarEventos() {
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * Bloco 6 - Regras do jogo
+ *
+ * `resultados` guarda o status da ultima conferencia de cada palavra.
+ * Editar uma casa descarta o resultado das palavras que passam por ela,
+ * obrigando a conferir de novo.
+ * ------------------------------------------------------------------ */
+
+const STATUS = {
+  CORRETA: 'correta',
+  INCORRETA: 'incorreta',
+  INCOMPLETA: 'incompleta',
+};
+
+const ROTULO_STATUS = {
+  [STATUS.CORRETA]: 'certa',
+  [STATUS.INCORRETA]: 'errada',
+  [STATUS.INCOMPLETA]: 'faltam letras',
+};
+
+/** @type {Map<string, string>} id da palavra -> status */
+const resultados = new Map();
+
+function letraDigitada(linha, coluna) {
+  return entradas.get(`${linha},${coluna}`).value;
+}
+
+function avaliar(palavra) {
+  const letras = palavra.coordenadas.map(({ linha, coluna }) => letraDigitada(linha, coluna));
+  if (letras.some((letra) => letra === '')) return STATUS.INCOMPLETA;
+  return letras.join('') === palavra.resposta ? STATUS.CORRETA : STATUS.INCORRETA;
+}
+
+/** Remove o resultado das palavras que passam pela casa editada. */
+function descartarConferencia(chave) {
+  const celula = celulaDe(chave);
+  if (!celula) return;
+
+  let mudou = false;
+  for (const { id } of celula.palavras) {
+    if (resultados.delete(id)) mudou = true;
+  }
+  if (mudou) {
+    pintarResultados();
+    atualizarPlacar();
+  }
+}
+
+/**
+ * Aplica as marcacoes no tabuleiro e nas pistas.
+ * A casa e julgada pela propria letra: isso mantem a marcacao coerente
+ * num cruzamento, onde a mesma casa pertence a duas palavras.
+ */
+function pintarResultados() {
+  const casasJulgadas = new Map();
+
+  for (const [id, status] of resultados) {
+    if (status === STATUS.INCOMPLETA) continue;
+    for (const { linha, coluna, letra } of porId.get(id).coordenadas) {
+      const chave = `${linha},${coluna}`;
+      casasJulgadas.set(chave, letraDigitada(linha, coluna) === letra);
+    }
+  }
+
+  for (const [chave, entrada] of entradas) {
+    const casa = entrada.parentElement;
+    const certa = casasJulgadas.get(chave);
+    casa.classList.toggle('casa--certa', certa === true);
+    casa.classList.toggle('casa--errada', certa === false);
+  }
+
+  for (const [id, item] of itensPista) {
+    const status = resultados.get(id);
+    item.classList.toggle('pista--correta', status === STATUS.CORRETA);
+    item.classList.toggle('pista--incorreta', status === STATUS.INCORRETA);
+    item.classList.toggle('pista--incompleta', status === STATUS.INCOMPLETA);
+    item.querySelector('.pista__estado').textContent = status ? ROTULO_STATUS[status] : '';
+  }
+}
+
+function totalCorretas() {
+  return [...resultados.values()].filter((status) => status === STATUS.CORRETA).length;
+}
+
+function atualizarPlacar() {
+  const acertos = totalCorretas();
+  const total = MODELO.palavras.length;
+
+  elementos.placarNumero.textContent = acertos;
+  elementos.placar.style.setProperty('--progresso', total ? acertos / total : 0);
+  elementos.placar.classList.toggle('placar--completo', acertos === total);
+}
+
+function anunciar(texto, tipo = 'neutra') {
+  elementos.mensagem.textContent = texto;
+  elementos.mensagem.className = `mensagem mensagem--${tipo}`;
+}
+
+function algumaLetraDigitada() {
+  return [...entradas.values()].some((entrada) => entrada.value !== '');
+}
+
+function conferir() {
+  if (!algumaLetraDigitada()) {
+    anunciar('Preencha ao menos uma palavra antes de conferir.', 'aviso');
+    return;
+  }
+
+  resultados.clear();
+  for (const palavra of MODELO.palavras) {
+    resultados.set(palavra.id, avaliar(palavra));
+  }
+
+  pintarResultados();
+  atualizarPlacar();
+
+  const acertos = totalCorretas();
+  const total = MODELO.palavras.length;
+
+  if (acertos === total) {
+    anunciar('Parabéns! Você completou a cruzadinha.', 'vitoria');
+    document.body.classList.add('venceu');
+    return;
+  }
+
+  document.body.classList.remove('venceu');
+  const faltando = [...resultados.values()].filter((s) => s === STATUS.INCOMPLETA).length;
+  const complemento = faltando ? ` ${faltando} ainda sem preencher por completo.` : '';
+  anunciar(`${acertos} de ${total} palavras corretas.${complemento}`, 'parcial');
+}
+
+function reiniciar() {
+  for (const [chave] of entradas) escrever(chave, '');
+
+  resultados.clear();
+  document.body.classList.remove('venceu');
+  pintarResultados();
+  atualizarPlacar();
+  anunciar('Tabuleiro limpo. Boa partida.', 'neutra');
+
+  const primeira = [...MODELO.palavras].sort((a, b) => a.numero - b.numero)[0];
+  irParaPalavra(primeira);
+}
+
 function iniciar() {
   elementos.placarTotal.textContent = MODELO.palavras.length;
   elementos.placarNumero.textContent = '0';
   renderizarTabuleiro();
   renderizarPistas();
   registrarEventos();
+  atualizarPlacar();
+
+  elementos.conferir.addEventListener('click', conferir);
+  elementos.reiniciar.addEventListener('click', reiniciar);
 
   const primeira = [...MODELO.palavras].sort((a, b) => a.numero - b.numero)[0];
   definirAtiva(`${primeira.linha},${primeira.coluna}`, primeira.direcao);
