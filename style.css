@@ -1,30 +1,79 @@
-/* ------------------------------------------------------------------ *
+/* ==================================================================
  * Cruzadinha de Arquitetura Computacional
- * Tokens e base. A identidade visual completa e aplicada adiante.
+ *
+ * Identidade visual inspirada em jogos retro de RPG: janelas de
+ * pergaminho com barra de titulo escura sobre um fundo verde-musgo,
+ * detalhes dourados e botoes em relevo. Tudo desenhado em CSS puro,
+ * sem imagens, fontes externas ou dependencias.
+ *
+ * Sumario
+ *   1. Tokens
+ *   2. Base e layout
+ *   3. Cabecalho
+ *   4. Barra de acoes (placar e botoes)
+ *   5. Mensagens
+ *   6. Janelas (paineis)
+ *   7. Tabuleiro
+ *   8. Pistas
+ *   9. Rodape
+ *  10. Responsivo
+ *  11. Acessibilidade e preferencias
+ * ================================================================== */
+
+/* ------------------------------------------------------------------ *
+ * 1. Tokens
  * ------------------------------------------------------------------ */
 
 :root {
   /* Fundo */
   --fundo: #14180f;
+  --fundo-profundo: #0b0f08;
   --fundo-painel: #11170d;
 
   /* Pergaminho */
   --pergaminho: #f4e9c6;
+  --pergaminho-claro: #fdf6e0;
   --pergaminho-escuro: #ded8b8;
+  --pergaminho-faixa: #e7dfbc;
   --tinta: #17140e;
+  --tinta-suave: #514b3f;
+
+  /* Madeira / moldura */
+  --madeira: #544e42;
+  --madeira-clara: #6b6454;
 
   /* Destaques */
   --ouro: #ffc348;
-  --laranja-claro: #ff941b;
-  --laranja-escuro: #d95408;
+  --ouro-claro: #ffe49d;
+  --ouro-escuro: #b8822a;
+  --laranja-topo: #ff941b;
+  --laranja-meio: #ed6e0b;
+  --laranja-base: #d95408;
+  --laranja-borda: #8f370d;
+  --laranja-sombra: #77300e;
   --contorno: #7a8667;
 
   /* Estados */
-  --acerto: #4f7a3a;
-  --erro: #a33a22;
+  --certa-fundo: #cfe3b0;
+  --certa-borda: #4f7a3a;
+  --certa-tinta: #23401a;
+  --errada-fundo: #f1c3b2;
+  --errada-borda: #a33a22;
+  --errada-tinta: #5a1d0e;
+  --aviso: #e9b949;
 
+  /* Medidas */
+  --raio-janela: 16px;
+  --raio-casa: 4px;
+  --borda-janela: 4px;
   --fonte: Tahoma, Verdana, Geneva, sans-serif;
+  --sombra-janela: 0 22px 54px rgba(0, 0, 0, 0.62);
+  --transicao: 140ms ease;
 }
+
+/* ------------------------------------------------------------------ *
+ * 2. Base e layout
+ * ------------------------------------------------------------------ */
 
 *,
 *::before,
@@ -34,30 +83,325 @@
 
 body {
   margin: 0;
-  background: var(--fundo);
-  color: var(--pergaminho);
+  min-height: 100vh;
   font-family: var(--fonte);
+  color: var(--pergaminho);
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(120, 150, 80, 0.16), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(255, 195, 72, 0.07), transparent 70%),
+    linear-gradient(180deg, var(--fundo) 0%, var(--fundo-profundo) 100%);
+  background-attachment: fixed;
+}
+
+/* Textura sutil, feita com gradientes repetidos em vez de imagem. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 4px);
 }
 
 .moldura {
-  max-width: 1200px;
+  position: relative;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: clamp(16px, 3vw, 36px) clamp(12px, 3vw, 28px) 56px;
+}
+
+.jogo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(16px, 2.2vw, 26px);
+  align-items: start;
 }
 
 /* ------------------------------------------------------------------ *
- * Tabuleiro
- * As linhas usam `display: contents` para que a grade controle o
- * alinhamento de todas as casas, mantendo role="row" para leitores.
+ * 3. Cabecalho
+ * ------------------------------------------------------------------ */
+
+.cabecalho {
+  text-align: center;
+  margin-bottom: clamp(16px, 2.4vw, 26px);
+}
+
+.cabecalho__selo {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ouro);
+  opacity: 0.78;
+}
+
+.cabecalho__titulo {
+  margin: 0;
+  font-size: clamp(1.9rem, 6.2vw, 3.6rem);
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+
+  /* Letras douradas "gravadas": gradiente no texto + sombras duras. */
+  background: linear-gradient(180deg, #ffeeb6 0%, var(--ouro) 42%, #e09a1d 60%, #ffdc8a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter:
+    drop-shadow(0 2px 0 rgba(90, 48, 6, 0.95))
+    drop-shadow(0 5px 10px rgba(0, 0, 0, 0.6));
+}
+
+.cabecalho__subtitulo {
+  margin: 12px auto 0;
+  max-width: 54ch;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #d9d2b4;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Barra de acoes
+ * ------------------------------------------------------------------ */
+
+.barra-acoes {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 14px;
+  padding: 12px clamp(12px, 2vw, 18px);
+  border: 1px solid rgba(122, 134, 103, 0.55);
+  border-radius: 14px;
+  background: rgba(13, 18, 10, 0.92);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+/* Placar com barra de progresso alimentada por --progresso (0 a 1). */
+.placar {
+  position: relative;
+  margin: 0;
+  padding-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 190px;
+  max-width: 280px;
+  flex: 1 1 190px;
+}
+
+.placar__numero {
+  font-size: 1.85rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ouro);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.placar__texto {
+  font-size: 0.84rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #cfc9ab;
+}
+
+.placar::before,
+.placar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.placar::before {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.placar::after {
+  width: calc(var(--progresso, 0) * 100%);
+  background: linear-gradient(90deg, var(--ouro-escuro), var(--ouro));
+  box-shadow: 0 0 10px rgba(255, 195, 72, 0.5);
+  transition: width 320ms ease;
+}
+
+.placar--completo .placar__numero {
+  animation: pulsar-ouro 1.4s ease-in-out 2;
+}
+
+.barra-acoes__botoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.botao {
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 11px 26px;
+  transition: transform var(--transicao), box-shadow var(--transicao), filter var(--transicao);
+}
+
+.botao--primario {
+  color: #fff7db;
+  border: 2px solid var(--laranja-borda);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    var(--laranja-topo) 0%,
+    var(--laranja-meio) 54%,
+    var(--laranja-base) 55%,
+    #ef7210 100%
+  );
+  box-shadow:
+    0 5px 0 var(--laranja-sombra),
+    0 10px 18px rgba(93, 53, 30, 0.5),
+    inset 0 2px 0 rgba(255, 208, 106, 0.9);
+  text-shadow: 0 1px 2px rgba(104, 42, 8, 0.8);
+}
+
+.botao--primario:hover {
+  filter: brightness(1.07);
+}
+
+.botao--secundario {
+  color: #eee5c9;
+  border: 2px solid var(--contorno);
+  border-radius: 12px;
+  background: rgba(18, 23, 14, 0.85);
+  box-shadow: 0 3px 0 var(--fundo-profundo);
+}
+
+.botao--secundario:hover {
+  border-color: var(--ouro-escuro);
+  color: var(--ouro-claro);
+}
+
+.botao:active {
+  transform: translateY(3px);
+}
+
+.botao--primario:active {
+  box-shadow: 0 2px 0 var(--laranja-sombra), inset 0 2px 0 rgba(255, 208, 106, 0.7);
+}
+
+.botao--secundario:active {
+  box-shadow: 0 0 0 var(--fundo-profundo);
+}
+
+/* ------------------------------------------------------------------ *
+ * 5. Mensagens
+ * ------------------------------------------------------------------ */
+
+.mensagem {
+  margin: 0 0 16px;
+  min-height: 1.25rem;
+  padding: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: #d9d2b4;
+  transition: color var(--transicao);
+}
+
+.mensagem:not(:empty) {
+  padding: 10px 16px;
+  border-left: 4px solid var(--contorno);
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mensagem--parcial:not(:empty) {
+  border-left-color: var(--ouro);
+  color: var(--ouro-claro);
+}
+
+.mensagem--aviso:not(:empty) {
+  border-left-color: var(--aviso);
+  color: #f3dda2;
+}
+
+.mensagem--vitoria:not(:empty) {
+  border-left-color: var(--certa-borda);
+  color: #d9f0bd;
+  background: rgba(79, 122, 58, 0.18);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Janelas (paineis)
+ * ------------------------------------------------------------------ */
+
+.painel {
+  border: var(--borda-janela) solid #fbf7e7;
+  border-radius: var(--raio-janela);
+  background: var(--pergaminho-escuro);
+  box-shadow: var(--sombra-janela);
+  overflow: hidden;
+}
+
+.painel__titulo {
+  margin: 0;
+  padding: 11px 18px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(180deg, var(--madeira-clara), var(--madeira));
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.painel__corpo {
+  padding: clamp(12px, 2vw, 20px);
+}
+
+/* O tabuleiro fica sobre fundo escuro para destacar as casas claras. */
+.painel--tabuleiro .painel__corpo {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 195, 72, 0.07), transparent 65%),
+    linear-gradient(180deg, #1a2113, var(--fundo-painel));
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.painel--pistas .painel__corpo {
+  display: grid;
+  gap: 18px;
+  background: var(--pergaminho);
+  color: var(--tinta);
+}
+
+/* ------------------------------------------------------------------ *
+ * 7. Tabuleiro
  * ------------------------------------------------------------------ */
 
 .tabuleiro-area {
   overflow-x: auto;
-  padding-bottom: 4px;
+  overscroll-behavior-x: contain;
+  padding: 4px 2px 10px;
+  scrollbar-color: var(--ouro-escuro) transparent;
 }
 
 .tabuleiro {
-  --casa: clamp(26px, 4.4vw, 40px);
+  --casa: clamp(24px, 4.1vw, 40px);
 
   display: grid;
   grid-template-columns: repeat(var(--colunas, 16), var(--casa));
@@ -73,23 +417,30 @@ body {
 .casa {
   position: relative;
   aspect-ratio: 1;
-  background: var(--pergaminho);
-  border-radius: 3px;
+  border-radius: var(--raio-casa);
+  background: var(--pergaminho-claro);
+  box-shadow:
+    inset 0 0 0 1px rgba(23, 20, 14, 0.3),
+    inset 0 -2px 0 rgba(140, 120, 80, 0.22),
+    0 1px 2px rgba(0, 0, 0, 0.45);
+  transition: background var(--transicao), box-shadow var(--transicao), transform var(--transicao);
 }
 
 .casa--bloqueada {
   background: transparent;
+  box-shadow: none;
 }
 
 .casa__numero {
   position: absolute;
   top: 1px;
   left: 3px;
+  z-index: 1;
   font-size: calc(var(--casa) * 0.3);
   font-weight: 700;
   line-height: 1;
   color: var(--tinta);
-  opacity: 0.65;
+  opacity: 0.6;
   pointer-events: none;
 }
 
@@ -98,69 +449,315 @@ body {
   height: 100%;
   padding: 0;
   border: none;
-  border-radius: 3px;
+  border-radius: var(--raio-casa);
   background: transparent;
   color: var(--tinta);
   font-family: inherit;
-  font-size: calc(var(--casa) * 0.55);
+  font-size: calc(var(--casa) * 0.56);
   font-weight: 700;
+  line-height: 1;
   text-align: center;
   text-transform: uppercase;
   caret-color: transparent;
+  cursor: pointer;
 }
 
 .casa__entrada:focus {
   outline: none;
 }
 
+/* Estados do tabuleiro --------------------------------------------- */
+
 .casa--palavra-ativa {
-  background: #f7e9b4;
+  background: #ffeeba;
 }
 
 .casa--ativa {
   background: var(--ouro);
-  box-shadow: 0 0 0 2px var(--ouro);
+  box-shadow:
+    inset 0 0 0 1px rgba(23, 20, 14, 0.45),
+    0 0 0 2px var(--ouro-claro),
+    0 0 14px rgba(255, 195, 72, 0.55);
+  transform: translateY(-1px);
+}
+
+.casa--certa {
+  background: var(--certa-fundo);
+  box-shadow:
+    inset 0 0 0 2px var(--certa-borda),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.casa--certa .casa__entrada {
+  color: var(--certa-tinta);
+}
+
+.casa--errada {
+  background: var(--errada-fundo);
+  box-shadow:
+    inset 0 0 0 2px var(--errada-borda),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.casa--errada .casa__entrada {
+  color: var(--errada-tinta);
+}
+
+/* A casa ativa continua reconhecivel mesmo ja conferida. */
+.casa--ativa.casa--certa {
+  box-shadow:
+    inset 0 0 0 2px var(--certa-borda),
+    0 0 0 2px var(--ouro),
+    0 0 14px rgba(255, 195, 72, 0.5);
+}
+
+.casa--ativa.casa--errada {
+  box-shadow:
+    inset 0 0 0 2px var(--errada-borda),
+    0 0 0 2px var(--ouro),
+    0 0 14px rgba(255, 195, 72, 0.5);
+}
+
+.venceu .casa--certa {
+  animation: brilho-vitoria 1.6s ease-out 1;
+}
+
+/* Legenda de atalhos abaixo do tabuleiro. */
+.atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  justify-content: center;
+  margin: 14px 0 0;
+  font-size: 0.74rem;
+  color: #9fa888;
+}
+
+.atalhos kbd {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 2px 7px;
+  border: 1px solid rgba(122, 134, 103, 0.7);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ouro-claro);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 /* ------------------------------------------------------------------ *
- * Pistas
+ * 8. Pistas
  * ------------------------------------------------------------------ */
 
+.grupo-pistas__titulo {
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  border-bottom: 2px solid rgba(23, 20, 14, 0.18);
+}
+
 .lista-pistas {
+  display: grid;
+  gap: 3px;
   margin: 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  gap: 4px;
 }
 
 .pista {
+  position: relative;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
     "numero texto"
-    ".      tamanho";
+    ".      meta";
   gap: 2px 10px;
-  padding: 7px 10px;
-  border-radius: 6px;
+
+  padding: 8px 12px 8px 10px;
+  border-left: 3px solid transparent;
+  border-radius: 0 7px 7px 0;
+  color: var(--tinta);
   cursor: pointer;
+  transition: background var(--transicao), border-color var(--transicao);
+}
+
+.pista:nth-child(odd) {
+  background: var(--pergaminho-faixa);
+}
+
+.pista:hover {
+  background: #f6e8ae;
 }
 
 .pista__numero {
   grid-area: numero;
-  min-width: 1.6em;
-  font-weight: 700;
-  color: var(--ouro);
+  min-width: 1.7em;
+  font-weight: 900;
   text-align: right;
+  color: var(--ouro-escuro);
+  font-variant-numeric: tabular-nums;
 }
 
 .pista__texto {
   grid-area: texto;
+  font-size: 0.92rem;
   line-height: 1.45;
 }
 
+.pista__tamanho,
+.pista__estado {
+  grid-area: meta;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
 .pista__tamanho {
-  grid-area: tamanho;
-  font-size: 0.78em;
-  opacity: 0.6;
+  color: var(--tinta-suave);
+  opacity: 0.8;
+}
+
+/* O selo de resultado aparece a direita da contagem de letras. */
+.pista__estado {
+  justify-self: end;
+  align-self: center;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pista__estado:not(:empty) {
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.pista--ativa {
+  background: #f7e3a1;
+  border-left-color: var(--ouro-escuro);
+}
+
+.pista--ativa .pista__texto {
+  font-weight: 700;
+}
+
+.pista--correta {
+  border-left-color: var(--certa-borda);
+}
+
+.pista--correta .pista__estado {
+  color: #f2f8e9;
+  background: var(--certa-borda);
+}
+
+.pista--incorreta {
+  border-left-color: var(--errada-borda);
+}
+
+.pista--incorreta .pista__estado {
+  color: #fdeee9;
+  background: var(--errada-borda);
+}
+
+.pista--incompleta {
+  border-left-color: var(--ouro-escuro);
+}
+
+.pista--incompleta .pista__estado {
+  color: var(--tinta);
+  background: rgba(23, 20, 14, 0.14);
+}
+
+/* ------------------------------------------------------------------ *
+ * 9. Rodape
+ * ------------------------------------------------------------------ */
+
+.rodape {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(122, 134, 103, 0.3);
+  font-size: 0.76rem;
+  line-height: 1.6;
+  text-align: center;
+  color: #9a9a82;
+}
+
+/* ------------------------------------------------------------------ *
+ * 10. Responsivo
+ * ------------------------------------------------------------------ */
+
+@media (min-width: 1000px) {
+  .jogo {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  }
+
+  .painel--pistas {
+    position: sticky;
+    top: 86px;
+    max-height: calc(100vh - 110px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .painel--pistas .painel__corpo {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .barra-acoes {
+    gap: 10px;
+  }
+
+  .botao {
+    flex: 1 1 auto;
+    padding: 11px 18px;
+  }
+
+  .cabecalho__subtitulo {
+    font-size: 0.88rem;
+  }
+
+  /* Casas menores para a grade de 16 colunas caber na tela do celular. */
+  .tabuleiro {
+    --casa: clamp(18px, 5.3vw, 30px);
+  }
+
+  .painel__corpo {
+    padding: 10px 8px;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 11. Acessibilidade e preferencias
+ * ------------------------------------------------------------------ */
+
+.botao:focus-visible,
+.pista:focus-visible {
+  outline: 3px solid var(--ouro);
+  outline-offset: 3px;
+}
+
+@keyframes pulsar-ouro {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@keyframes brilho-vitoria {
+  0% { box-shadow: inset 0 0 0 2px var(--certa-borda), 0 0 0 rgba(255, 195, 72, 0); }
+  40% { box-shadow: inset 0 0 0 2px var(--certa-borda), 0 0 16px rgba(255, 195, 72, 0.85); }
+  100% { box-shadow: inset 0 0 0 2px var(--certa-borda), 0 0 0 rgba(255, 195, 72, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
