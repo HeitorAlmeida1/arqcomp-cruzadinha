@@ -113,3 +113,46 @@ body {
   outline: 2px solid var(--ouro);
   outline-offset: -2px;
 }
+
+/* ------------------------------------------------------------------ *
+ * Pistas
+ * ------------------------------------------------------------------ */
+
+.lista-pistas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.pista {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "numero texto"
+    ".      tamanho";
+  gap: 2px 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pista__numero {
+  grid-area: numero;
+  min-width: 1.6em;
+  font-weight: 700;
+  color: var(--ouro);
+  text-align: right;
+}
+
+.pista__texto {
+  grid-area: texto;
+  line-height: 1.45;
+}
+
+.pista__tamanho {
+  grid-area: tamanho;
+  font-size: 0.78em;
+  opacity: 0.6;
+}

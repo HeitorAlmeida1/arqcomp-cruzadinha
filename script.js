@@ -4,6 +4,7 @@
  * Bloco 1 - Dados
  * Bloco 2 - Montagem do modelo a partir dos dados
  * Bloco 3 - Render do tabuleiro
+ * Bloco 4 - Render das pistas
  */
 
 'use strict';
@@ -22,42 +23,42 @@
 const PALAVRAS = [
   {
     resposta: 'REGISTRADORES',
-    pista: 'Pequenos espacos internos do processador que guardam valores em uso imediato.',
+    pista: 'Pequenos espaços internos do processador que guardam valores em uso imediato.',
     linha: 0, coluna: 1, direcao: 'V',
   },
   {
     resposta: 'EEPROM',
-    pista: 'Chip regravavel eletricamente que mantem configuracoes mesmo desligado.',
+    pista: 'Chip regravável eletricamente que mantém configurações mesmo desligado.',
     linha: 0, coluna: 15, direcao: 'V',
   },
   {
     resposta: 'MEMORIADEMASSA',
-    pista: 'Armazenamento permanente de grande capacidade, como discos rigidos e SSDs.',
+    pista: 'Armazenamento permanente de grande capacidade, como discos rígidos e SSDs.',
     linha: 1, coluna: 0, direcao: 'H',
   },
   {
     resposta: 'ADDRESSBUS',
-    pista: 'Caminho de mao unica que indica qual posicao da memoria sera acessada.',
+    pista: 'Caminho de mão única que indica qual posição da memória será acessada.',
     linha: 1, coluna: 13, direcao: 'V',
   },
   {
     resposta: 'MICROCONTROLADOR',
-    pista: 'Chip unico que reune processamento, memoria e portas de entrada e saida.',
+    pista: 'Chip único que reúne processamento, memória e portas de entrada e saída.',
     linha: 3, coluna: 0, direcao: 'H',
   },
   {
     resposta: 'CPU',
-    pista: 'Componente central que busca, decodifica e executa as instrucoes do programa.',
+    pista: 'Componente central que busca, decodifica e executa as instruções do programa.',
     linha: 3, coluna: 5, direcao: 'V',
   },
   {
     resposta: 'QUADCORE',
-    pista: 'Processador com quatro centros de execucao independentes no mesmo encapsulamento.',
+    pista: 'Processador com quatro centros de execução independentes no mesmo encapsulamento.',
     linha: 5, coluna: 4, direcao: 'H',
   },
   {
     resposta: 'RAM',
-    pista: 'Memoria volatil de trabalho que perde todo o conteudo ao faltar energia.',
+    pista: 'Memória volátil de trabalho que perde todo o conteúdo ao faltar energia.',
     linha: 6, coluna: 1, direcao: 'H',
   },
   {
@@ -67,37 +68,37 @@ const PALAVRAS = [
   },
   {
     resposta: 'FLASH',
-    pista: 'Tecnologia regravavel em blocos usada em pendrives e cartoes de memoria.',
+    pista: 'Tecnologia regravável em blocos usada em pendrives e cartões de memória.',
     linha: 7, coluna: 10, direcao: 'H',
   },
   {
     resposta: 'DUALCORE',
-    pista: 'Processador com dois centros de execucao independentes no mesmo encapsulamento.',
+    pista: 'Processador com dois centros de execução independentes no mesmo encapsulamento.',
     linha: 8, coluna: 1, direcao: 'H',
   },
   {
     resposta: 'CACHE',
-    pista: 'Memoria pequena e muito rapida que adianta conteudo usado com frequencia.',
+    pista: 'Memória pequena e muito rápida que adianta conteúdo usado com frequência.',
     linha: 8, coluna: 15, direcao: 'V',
   },
   {
     resposta: 'ULA',
-    pista: 'Parte do processador responsavel pelas contas e pelas comparacoes logicas.',
+    pista: 'Parte do processador responsável pelas contas e pelas comparações lógicas.',
     linha: 9, coluna: 13, direcao: 'H',
   },
   {
     resposta: 'ROM',
-    pista: 'Memoria somente de leitura, gravada na fabrica e nao alteravel pelo usuario.',
+    pista: 'Memória somente de leitura, gravada na fábrica e não alterável pelo usuário.',
     linha: 10, coluna: 1, direcao: 'H',
   },
   {
     resposta: 'DATABUS',
-    pista: 'Caminho de mao dupla por onde trafega a informacao entre processador e memoria.',
+    pista: 'Caminho de mão dupla por onde trafega a informação entre processador e memória.',
     linha: 10, coluna: 7, direcao: 'H',
   },
   {
     resposta: 'DMA',
-    pista: 'Tecnica que deixa perifericos acessarem a memoria sem ocupar o processador.',
+    pista: 'Técnica que deixa periféricos acessarem a memória sem ocupar o processador.',
     linha: 10, coluna: 7, direcao: 'V',
   },
 ];
@@ -204,6 +205,8 @@ const elementos = {
   tabuleiro: document.getElementById('tabuleiro'),
   placarNumero: document.getElementById('placar-numero'),
   placarTotal: document.getElementById('placar-total'),
+  pistasHorizontais: document.getElementById('pistas-horizontais'),
+  pistasVerticais: document.getElementById('pistas-verticais'),
 };
 
 /** Guarda o <input> de cada casa jogavel, indexado por "linha,coluna". */
@@ -275,10 +278,56 @@ function renderizarTabuleiro() {
   elementos.tabuleiro.replaceChildren(fragmento);
 }
 
+/* ------------------------------------------------------------------ *
+ * Bloco 4 - Render das pistas
+ *
+ * As pistas sao separadas por direcao e ordenadas pelo numero da casa
+ * inicial, para acompanharem a numeracao exibida no tabuleiro.
+ * ------------------------------------------------------------------ */
+
+/** Guarda o <li> de cada palavra, indexado pelo id da palavra. */
+const itensPista = new Map();
+
+function criarItemPista(palavra) {
+  const item = document.createElement('li');
+  item.className = 'pista';
+  item.dataset.palavra = palavra.id;
+  item.tabIndex = 0;
+  item.setAttribute('role', 'button');
+
+  const numero = document.createElement('span');
+  numero.className = 'pista__numero';
+  numero.textContent = palavra.numero;
+
+  const texto = document.createElement('span');
+  texto.className = 'pista__texto';
+  texto.textContent = palavra.pista;
+
+  const tamanho = document.createElement('span');
+  tamanho.className = 'pista__tamanho';
+  tamanho.textContent = `${palavra.resposta.length} letras`;
+
+  item.append(numero, texto, tamanho);
+  itensPista.set(palavra.id, item);
+  return item;
+}
+
+function renderizarPistas() {
+  const porNumero = (a, b) => a.numero - b.numero;
+  const daDirecao = (direcao) => MODELO.palavras
+    .filter((palavra) => palavra.direcao === direcao)
+    .sort(porNumero)
+    .map(criarItemPista);
+
+  elementos.pistasHorizontais.replaceChildren(...daDirecao('H'));
+  elementos.pistasVerticais.replaceChildren(...daDirecao('V'));
+}
+
 function iniciar() {
   elementos.placarTotal.textContent = MODELO.palavras.length;
   elementos.placarNumero.textContent = '0';
   renderizarTabuleiro();
+  renderizarPistas();
 }
 
 iniciar();
