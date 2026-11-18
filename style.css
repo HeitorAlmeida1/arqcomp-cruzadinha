@@ -44,3 +44,72 @@ body {
   margin: 0 auto;
   padding: 24px 16px 48px;
 }
+
+/* ------------------------------------------------------------------ *
+ * Tabuleiro
+ * As linhas usam `display: contents` para que a grade controle o
+ * alinhamento de todas as casas, mantendo role="row" para leitores.
+ * ------------------------------------------------------------------ */
+
+.tabuleiro-area {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.tabuleiro {
+  --casa: clamp(26px, 4.4vw, 40px);
+
+  display: grid;
+  grid-template-columns: repeat(var(--colunas, 16), var(--casa));
+  gap: 2px;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.tabuleiro__linha {
+  display: contents;
+}
+
+.casa {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--pergaminho);
+  border-radius: 3px;
+}
+
+.casa--bloqueada {
+  background: transparent;
+}
+
+.casa__numero {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  font-size: calc(var(--casa) * 0.3);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--tinta);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.casa__entrada {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: calc(var(--casa) * 0.55);
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  caret-color: transparent;
+}
+
+.casa__entrada:focus {
+  outline: 2px solid var(--ouro);
+  outline-offset: -2px;
+}

@@ -3,6 +3,7 @@
  *
  * Bloco 1 - Dados
  * Bloco 2 - Montagem do modelo a partir dos dados
+ * Bloco 3 - Render do tabuleiro
  */
 
 'use strict';
@@ -190,3 +191,94 @@ function construirModelo(dados) {
 }
 
 const MODELO = construirModelo(PALAVRAS);
+
+/* ------------------------------------------------------------------ *
+ * Bloco 3 - Render do tabuleiro
+ *
+ * A grade e escrita inteiramente por JavaScript a partir do MODELO.
+ * Casas jogaveis recebem um <input> de uma letra; as demais sao
+ * casas bloqueadas, apenas decorativas.
+ * ------------------------------------------------------------------ */
+
+const elementos = {
+  tabuleiro: document.getElementById('tabuleiro'),
+  placarNumero: document.getElementById('placar-numero'),
+  placarTotal: document.getElementById('placar-total'),
+};
+
+/** Guarda o <input> de cada casa jogavel, indexado por "linha,coluna". */
+const entradas = new Map();
+
+function criarCasaBloqueada() {
+  const casa = document.createElement('div');
+  casa.className = 'casa casa--bloqueada';
+  casa.setAttribute('role', 'presentation');
+  return casa;
+}
+
+function criarCasaJogavel(celula) {
+  const casa = document.createElement('div');
+  casa.className = 'casa';
+  casa.setAttribute('role', 'gridcell');
+
+  if (celula.numero !== undefined) {
+    const numero = document.createElement('span');
+    numero.className = 'casa__numero';
+    numero.textContent = celula.numero;
+    numero.setAttribute('aria-hidden', 'true');
+    casa.append(numero);
+  }
+
+  const entrada = document.createElement('input');
+  entrada.className = 'casa__entrada';
+  entrada.type = 'text';
+  entrada.maxLength = 1;
+  entrada.inputMode = 'text';
+  entrada.autocomplete = 'off';
+  entrada.autocapitalize = 'characters';
+  entrada.spellcheck = false;
+  entrada.dataset.linha = celula.linha;
+  entrada.dataset.coluna = celula.coluna;
+  entrada.setAttribute('aria-label', descreverCasa(celula));
+
+  casa.append(entrada);
+  entradas.set(celula.chave, entrada);
+  return casa;
+}
+
+/** Rotulo acessivel: lista as palavras as quais a casa pertence. */
+function descreverCasa(celula) {
+  const partes = celula.palavras.map(({ id, indice }) => {
+    const palavra = MODELO.palavras.find((p) => p.id === id);
+    const sentido = palavra.direcao === 'H' ? 'horizontal' : 'vertical';
+    return `letra ${indice + 1} da pista ${palavra.numero} ${sentido}`;
+  });
+  return partes.join(', ');
+}
+
+function renderizarTabuleiro() {
+  const fragmento = document.createDocumentFragment();
+
+  for (let linha = 0; linha < MODELO.linhas; linha++) {
+    const faixa = document.createElement('div');
+    faixa.className = 'tabuleiro__linha';
+    faixa.setAttribute('role', 'row');
+
+    for (let coluna = 0; coluna < MODELO.colunas; coluna++) {
+      const celula = MODELO.celulas.get(`${linha},${coluna}`);
+      faixa.append(celula ? criarCasaJogavel(celula) : criarCasaBloqueada());
+    }
+    fragmento.append(faixa);
+  }
+
+  elementos.tabuleiro.style.setProperty('--colunas', MODELO.colunas);
+  elementos.tabuleiro.replaceChildren(fragmento);
+}
+
+function iniciar() {
+  elementos.placarTotal.textContent = MODELO.palavras.length;
+  elementos.placarNumero.textContent = '0';
+  renderizarTabuleiro();
+}
+
+iniciar();
