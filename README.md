@@ -3,7 +3,7 @@
 Jogo de palavras cruzadas, jogável no navegador, sobre os termos de Arquitetura Computacional.
 Leia a pista, descubra o termo e digite as letras direto nas casas do tabuleiro.
 
-**Jogue aqui:** _(link do GitHub Pages — será adicionado após a publicação)_
+**Jogue aqui:** https://heitoralmeida1.github.io/arqcomp-cruzadinha/
 
 > Atividade avaliativa da Sprint 3 da disciplina de Arquitetura Computacional.
 > Site estático, feito com HTML, CSS e JavaScript puros, sem dependências externas.
