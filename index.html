@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Jogo de palavras cruzadas sobre os termos de Arquitetura Computacional: processador, memorias, barramentos e nucleos.">
+  <meta name="theme-color" content="#14180f">
+  <title>Cruzadinha de Arquitetura Computacional</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2314180f'/><rect x='5' y='5' width='9' height='9' fill='%23f4e9c6'/><rect x='18' y='5' width='9' height='9' fill='%23ffc348'/><rect x='5' y='18' width='9' height='9' fill='%23ffc348'/><rect x='18' y='18' width='9' height='9' fill='%23f4e9c6'/></svg>">
+</head>
+<body>
+  <div class="moldura">
+
+    <header class="cabecalho">
+      <p class="cabecalho__selo">Arquitetura Computacional</p>
+      <h1 class="cabecalho__titulo">Cruzadinha de Arquitetura</h1>
+      <p class="cabecalho__subtitulo">
+        Leia a pista, descubra o termo e escreva nas casas. Sem acento, sem espaco.
+      </p>
+    </header>
+
+    <section class="barra-acoes" aria-label="Acoes do jogo">
+      <p class="placar" id="placar">
+        <span class="placar__numero" id="placar-numero">0</span>
+        <span class="placar__texto">de <span id="placar-total">0</span> palavras</span>
+      </p>
+      <div class="barra-acoes__botoes">
+        <button type="button" class="botao botao--primario" id="btn-conferir">Conferir</button>
+        <button type="button" class="botao botao--secundario" id="btn-reiniciar">Reiniciar</button>
+      </div>
+    </section>
+
+    <p class="mensagem" id="mensagem" role="status" aria-live="polite"></p>
+
+    <main class="jogo">
+      <section class="painel painel--tabuleiro" aria-labelledby="titulo-tabuleiro">
+        <h2 class="painel__titulo" id="titulo-tabuleiro">Tabuleiro</h2>
+        <div class="painel__corpo">
+          <div class="tabuleiro-area">
+            <div class="tabuleiro" id="tabuleiro" role="grid" aria-label="Tabuleiro da cruzadinha"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="painel painel--pistas" aria-labelledby="titulo-pistas">
+        <h2 class="painel__titulo" id="titulo-pistas">Pistas</h2>
+        <div class="painel__corpo">
+          <section class="grupo-pistas" aria-labelledby="titulo-horizontais">
+            <h3 class="grupo-pistas__titulo" id="titulo-horizontais">Horizontais</h3>
+            <ol class="lista-pistas" id="pistas-horizontais"></ol>
+          </section>
+          <section class="grupo-pistas" aria-labelledby="titulo-verticais">
+            <h3 class="grupo-pistas__titulo" id="titulo-verticais">Verticais</h3>
+            <ol class="lista-pistas" id="pistas-verticais"></ol>
+          </section>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="rodape">
+      <p>
+        Projeto academico da disciplina de Arquitetura Computacional.
+        Identidade visual inspirada em jogos retro, sem uso de qualquer recurso de terceiros.
+      </p>
+    </footer>
+
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

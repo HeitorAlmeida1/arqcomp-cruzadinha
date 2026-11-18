@@ -1,0 +1,46 @@
+/* ------------------------------------------------------------------ *
+ * Cruzadinha de Arquitetura Computacional
+ * Tokens e base. A identidade visual completa e aplicada adiante.
+ * ------------------------------------------------------------------ */
+
+:root {
+  /* Fundo */
+  --fundo: #14180f;
+  --fundo-painel: #11170d;
+
+  /* Pergaminho */
+  --pergaminho: #f4e9c6;
+  --pergaminho-escuro: #ded8b8;
+  --tinta: #17140e;
+
+  /* Destaques */
+  --ouro: #ffc348;
+  --laranja-claro: #ff941b;
+  --laranja-escuro: #d95408;
+  --contorno: #7a8667;
+
+  /* Estados */
+  --acerto: #4f7a3a;
+  --erro: #a33a22;
+
+  --fonte: Tahoma, Verdana, Geneva, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--pergaminho);
+  font-family: var(--fonte);
+}
+
+.moldura {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
