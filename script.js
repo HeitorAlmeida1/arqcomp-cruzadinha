@@ -5,6 +5,7 @@
  * Bloco 2 - Montagem do modelo a partir dos dados
  * Bloco 3 - Render do tabuleiro
  * Bloco 4 - Render das pistas
+ * Bloco 5 - Interacao: digitacao, navegacao e palavra ativa
  */
 
 'use strict';
@@ -323,11 +324,301 @@ function renderizarPistas() {
   elementos.pistasVerticais.replaceChildren(...daDirecao('V'));
 }
 
+/* ------------------------------------------------------------------ *
+ * Bloco 5 - Interacao
+ *
+ * Mantem uma palavra ativa e uma casa ativa. A digitacao escreve na casa
+ * ativa e avanca dentro da palavra; as setas andam pela grade e podem
+ * trocar a direcao corrente.
+ * ------------------------------------------------------------------ */
+
+const estado = {
+  palavraAtiva: null,
+  casaAtiva: null,
+};
+
+const porId = new Map(MODELO.palavras.map((palavra) => [palavra.id, palavra]));
+
+/** Converte a tecla em letra A-Z, removendo acento. Retorna '' se invalida. */
+function normalizarLetra(texto) {
+  const letra = texto
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .slice(-1);
+  return /^[A-Z]$/.test(letra) ? letra : '';
+}
+
+function celulaDe(chave) {
+  return MODELO.celulas.get(chave);
+}
+
+/** Palavras que passam pela casa, na direcao pedida quando houver. */
+function palavraNaCasa(chave, direcao) {
+  const celula = celulaDe(chave);
+  if (!celula) return null;
+  const candidatas = celula.palavras.map(({ id }) => porId.get(id));
+  return candidatas.find((p) => p.direcao === direcao) || candidatas[0];
+}
+
+function definirAtiva(chave, direcaoDesejada) {
+  const celula = celulaDe(chave);
+  if (!celula) return;
+
+  const atual = estado.palavraAtiva ? porId.get(estado.palavraAtiva) : null;
+  const direcao = direcaoDesejada
+    || (atual && celula.palavras.some(({ id }) => porId.get(id).direcao === atual.direcao)
+      ? atual.direcao
+      : null);
+
+  const palavra = palavraNaCasa(chave, direcao);
+  estado.palavraAtiva = palavra.id;
+  estado.casaAtiva = chave;
+  atualizarDestaques();
+}
+
+/** Alterna entre a palavra horizontal e a vertical que cruzam a casa ativa. */
+function alternarDirecao() {
+  const celula = celulaDe(estado.casaAtiva);
+  if (!celula || celula.palavras.length < 2) return;
+
+  const atual = porId.get(estado.palavraAtiva);
+  const outra = celula.palavras
+    .map(({ id }) => porId.get(id))
+    .find((p) => p.direcao !== atual.direcao);
+
+  if (outra) {
+    estado.palavraAtiva = outra.id;
+    atualizarDestaques();
+  }
+}
+
+function atualizarDestaques() {
+  const palavra = estado.palavraAtiva ? porId.get(estado.palavraAtiva) : null;
+  const chavesDaPalavra = new Set(
+    palavra ? palavra.coordenadas.map(({ linha, coluna }) => `${linha},${coluna}`) : [],
+  );
+
+  for (const [chave, entrada] of entradas) {
+    const casa = entrada.parentElement;
+    casa.classList.toggle('casa--palavra-ativa', chavesDaPalavra.has(chave));
+    casa.classList.toggle('casa--ativa', chave === estado.casaAtiva);
+  }
+
+  for (const [id, item] of itensPista) {
+    item.classList.toggle('pista--ativa', id === estado.palavraAtiva);
+  }
+}
+
+function focarCasa(chave) {
+  const entrada = entradas.get(chave);
+  if (!entrada) return;
+  entrada.focus();
+  entrada.select();
+}
+
+/** Casa vizinha dentro da palavra ativa, a `passos` de distancia. */
+function casaVizinhaNaPalavra(passos) {
+  const palavra = porId.get(estado.palavraAtiva);
+  if (!palavra) return null;
+
+  const indice = palavra.coordenadas.findIndex(
+    ({ linha, coluna }) => `${linha},${coluna}` === estado.casaAtiva,
+  );
+  const alvo = palavra.coordenadas[indice + passos];
+  return alvo ? `${alvo.linha},${alvo.coluna}` : null;
+}
+
+/** Proxima casa jogavel na direcao indicada, pulando casas bloqueadas. */
+function casaVizinhaNaGrade(dLinha, dColuna) {
+  const celula = celulaDe(estado.casaAtiva);
+  if (!celula) return null;
+
+  let { linha, coluna } = celula;
+  for (let i = 0; i < Math.max(MODELO.linhas, MODELO.colunas); i++) {
+    linha += dLinha;
+    coluna += dColuna;
+    if (linha < 0 || coluna < 0 || linha >= MODELO.linhas || coluna >= MODELO.colunas) return null;
+    const chave = `${linha},${coluna}`;
+    if (entradas.has(chave)) return chave;
+  }
+  return null;
+}
+
+/** Primeira casa vazia da palavra, ou a primeira casa se estiver cheia. */
+function primeiraCasaLivre(palavra) {
+  const livre = palavra.coordenadas.find(({ linha, coluna }) => !entradas.get(`${linha},${coluna}`).value);
+  const alvo = livre || palavra.coordenadas[0];
+  return `${alvo.linha},${alvo.coluna}`;
+}
+
+function irParaPalavra(palavra) {
+  const chave = primeiraCasaLivre(palavra);
+  definirAtiva(chave, palavra.direcao);
+  focarCasa(chave);
+}
+
+/** Salta para a palavra seguinte (ou anterior) na ordem das pistas. */
+function pularPalavra(direcaoDoSalto) {
+  const ordenadas = [...MODELO.palavras].sort(
+    (a, b) => a.numero - b.numero || a.direcao.localeCompare(b.direcao),
+  );
+  const atual = ordenadas.findIndex((p) => p.id === estado.palavraAtiva);
+  const proxima = ordenadas[(atual + direcaoDoSalto + ordenadas.length) % ordenadas.length];
+  irParaPalavra(proxima);
+}
+
+function escrever(chave, letra) {
+  const entrada = entradas.get(chave);
+  if (!entrada) return;
+  entrada.value = letra;
+  entrada.parentElement.classList.toggle('casa--preenchida', letra !== '');
+}
+
+function aoDigitar(evento) {
+  const entrada = evento.target;
+  const chave = `${entrada.dataset.linha},${entrada.dataset.coluna}`;
+  const letra = normalizarLetra(entrada.value);
+
+  escrever(chave, letra);
+  if (!letra) return;
+
+  const proxima = casaVizinhaNaPalavra(1);
+  if (proxima) {
+    definirAtiva(proxima);
+    focarCasa(proxima);
+  }
+}
+
+function aoPressionarTecla(evento) {
+  const entrada = evento.target;
+  const chave = `${entrada.dataset.linha},${entrada.dataset.coluna}`;
+  const palavra = porId.get(estado.palavraAtiva);
+
+  const navegar = (alvo) => {
+    if (!alvo) return;
+    evento.preventDefault();
+    definirAtiva(alvo);
+    focarCasa(alvo);
+  };
+
+  switch (evento.key) {
+    case 'ArrowRight':
+      definirAtiva(chave, 'H');
+      navegar(casaVizinhaNaGrade(0, 1));
+      break;
+
+    case 'ArrowLeft':
+      definirAtiva(chave, 'H');
+      navegar(casaVizinhaNaGrade(0, -1));
+      break;
+
+    case 'ArrowDown':
+      definirAtiva(chave, 'V');
+      navegar(casaVizinhaNaGrade(1, 0));
+      break;
+
+    case 'ArrowUp':
+      definirAtiva(chave, 'V');
+      navegar(casaVizinhaNaGrade(-1, 0));
+      break;
+
+    case 'Backspace': {
+      evento.preventDefault();
+      if (entrada.value) {
+        escrever(chave, '');
+        return;
+      }
+      const anterior = casaVizinhaNaPalavra(-1);
+      if (anterior) {
+        escrever(anterior, '');
+        definirAtiva(anterior);
+        focarCasa(anterior);
+      }
+      break;
+    }
+
+    case 'Delete':
+      evento.preventDefault();
+      escrever(chave, '');
+      break;
+
+    case 'Home':
+      navegar(`${palavra.coordenadas[0].linha},${palavra.coordenadas[0].coluna}`);
+      break;
+
+    case 'End': {
+      const fim = palavra.coordenadas[palavra.coordenadas.length - 1];
+      navegar(`${fim.linha},${fim.coluna}`);
+      break;
+    }
+
+    case 'Tab':
+      evento.preventDefault();
+      pularPalavra(evento.shiftKey ? -1 : 1);
+      break;
+
+    case ' ':
+      evento.preventDefault();
+      alternarDirecao();
+      break;
+
+    default:
+      break;
+  }
+}
+
+function aoClicarNaCasa(evento) {
+  const entrada = evento.target;
+  const chave = `${entrada.dataset.linha},${entrada.dataset.coluna}`;
+
+  if (chave === estado.casaAtiva) {
+    alternarDirecao();
+  } else {
+    definirAtiva(chave);
+  }
+  entrada.select();
+}
+
+function registrarEventos() {
+  for (const entrada of entradas.values()) {
+    entrada.addEventListener('input', aoDigitar);
+    entrada.addEventListener('keydown', aoPressionarTecla);
+    entrada.addEventListener('pointerdown', () => {
+      // Guarda a intencao do clique antes de o foco mudar.
+      entrada.dataset.cliqueProprio = 'sim';
+    });
+    entrada.addEventListener('click', aoClicarNaCasa);
+    entrada.addEventListener('focus', () => {
+      if (entrada.dataset.cliqueProprio) {
+        delete entrada.dataset.cliqueProprio;
+        return;
+      }
+      definirAtiva(`${entrada.dataset.linha},${entrada.dataset.coluna}`);
+    });
+  }
+
+  for (const [id, item] of itensPista) {
+    const ativar = () => irParaPalavra(porId.get(id));
+    item.addEventListener('click', ativar);
+    item.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Enter' || evento.key === ' ') {
+        evento.preventDefault();
+        ativar();
+      }
+    });
+  }
+}
+
 function iniciar() {
   elementos.placarTotal.textContent = MODELO.palavras.length;
   elementos.placarNumero.textContent = '0';
   renderizarTabuleiro();
   renderizarPistas();
+  registrarEventos();
+
+  const primeira = [...MODELO.palavras].sort((a, b) => a.numero - b.numero)[0];
+  definirAtiva(`${primeira.linha},${primeira.coluna}`, primeira.direcao);
 }
 
 iniciar();

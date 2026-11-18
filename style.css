@@ -110,8 +110,16 @@ body {
 }
 
 .casa__entrada:focus {
-  outline: 2px solid var(--ouro);
-  outline-offset: -2px;
+  outline: none;
+}
+
+.casa--palavra-ativa {
+  background: #f7e9b4;
+}
+
+.casa--ativa {
+  background: var(--ouro);
+  box-shadow: 0 0 0 2px var(--ouro);
 }
 
 /* ------------------------------------------------------------------ *
