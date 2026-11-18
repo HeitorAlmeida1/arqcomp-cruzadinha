@@ -15,7 +15,7 @@ Leia a pista, descubra o termo e digite as letras direto nas casas do tabuleiro.
    para a próxima casa.
 3. Use as **setas** para mover o cursor e **Backspace** para apagar.
 4. Clique em **Conferir** para ver quais palavras estão certas e quais estão erradas.
-5. O contador mostra quantas palavras você já acertou (por exemplo, `8 de 14 palavras`).
+5. O contador mostra quantas palavras você já acertou (por exemplo, `8 de 16 palavras`).
 6. Clique em **Reiniciar** para limpar o tabuleiro e começar de novo.
 
 As respostas são escritas em **letras maiúsculas, sem acento e sem espaço** — por exemplo,
@@ -42,8 +42,8 @@ As respostas são escritas em **letras maiúsculas, sem acento e sem espaço** �
 | DUALCORE | Processador com dois centros de execução independentes no mesmo encapsulamento. |
 | QUADCORE | Processador com quatro centros de execução independentes no mesmo encapsulamento. |
 
-> A lista acima cobre os 16 termos da atividade. O tabuleiro utiliza 14 deles, todos cruzados
-> entre si. A relação final das palavras no tabuleiro está em
+> A lista acima cobre os 16 termos da atividade, e o tabuleiro utiliza todos eles, cruzados
+> entre si numa grade de 13 x 16. O layout completo está em
 > [docs/especificacao.md](docs/especificacao.md).
 
 ## Tecnologias

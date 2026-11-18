@@ -21,11 +21,11 @@ com histórico de commits distribuído ao longo do desenvolvimento.
 
 **Dentro do escopo**
 
-- Tabuleiro único e fixo, com 14 das 16 palavras da lista oficial, todas cruzadas.
+- Tabuleiro único e fixo, com as 16 palavras da lista oficial, todas cruzadas.
 - Pistas numeradas, separadas em **Horizontais** e **Verticais**.
 - Digitação letra a letra diretamente nas casas, com navegação por teclado.
 - Botão **Conferir**, com destaque visual de palavras corretas e incorretas.
-- Contador de acertos no formato `X de 14 palavras`.
+- Contador de acertos no formato `X de 16 palavras`.
 - Botão **Reiniciar**, que limpa o tabuleiro e o placar.
 - Identidade visual inspirada em Dofus / Retro Survival, construída apenas com CSS.
 - Layout responsivo (desktop e celular).
@@ -50,14 +50,14 @@ com histórico de commits distribuído ao longo do desenvolvimento.
 | F4 | Navegar pelo teclado | Setas movem o cursor, `Backspace` apaga e volta, `Tab` salta para a próxima palavra. |
 | F5 | Destacar a palavra ativa | Ao focar uma casa, a palavra correspondente e sua pista ficam realçadas. |
 | F6 | Conferir | O botão **Conferir** compara o preenchimento com o gabarito e marca cada palavra como correta ou incorreta. |
-| F7 | Acompanhar o placar | Um contador mostra `X de 14 palavras` corretas, atualizado a cada conferência. |
+| F7 | Acompanhar o placar | Um contador mostra `X de 16 palavras` corretas, atualizado a cada conferência. |
 | F8 | Reiniciar | O botão **Reiniciar** apaga todas as letras, remove as marcações e zera o placar. |
 | F9 | Vencer | Ao acertar todas as palavras, uma mensagem de vitória é exibida. |
 
 ## 5. Regras de negócio
 
 1. **RN01 — Palavras.** O tabuleiro usa exclusivamente termos da lista oficial, na grafia de
-   tabuleiro (maiúsculas, sem acento e sem espaço). Mínimo de 12; esta versão usa 14.
+   tabuleiro (maiúsculas, sem acento e sem espaço). Mínimo de 12; esta versão usa as 16, em uma grade de 13 linhas por 16 colunas com 16 cruzamentos.
 2. **RN02 — Cruzamentos.** Toda palavra cruza com pelo menos uma outra, e as letras nas
    interseções devem coincidir. Uma alteração em `PALAVRAS` que quebre um cruzamento é inválida.
 3. **RN03 — Pistas.** No máximo 15 palavras por pista, escritas com palavras próprias, sem
@@ -110,7 +110,7 @@ caixa alta, peso alto e `letter-spacing` aumentado.
 ### 6.2 Organização da tela
 
 - **Cabeçalho:** título do jogo em dourado, subtítulo com a disciplina.
-- **Barra de ações:** placar `X de 14 palavras` à esquerda; botões **Conferir** (laranja, em
+- **Barra de ações:** placar `X de 16 palavras` à esquerda; botões **Conferir** (laranja, em
   destaque) e **Reiniciar** (secundário, escuro) à direita.
 - **Área principal:** tabuleiro em CSS Grid à esquerda; painel de pistas à direita, dividido em
   **Horizontais** e **Verticais**. Em telas estreitas, o painel desce para baixo do tabuleiro.
@@ -130,13 +130,13 @@ caixa alta, peso alto e `letter-spacing` aumentado.
 
 ### 6.4 Mensagens
 
-- Após conferir: `8 de 14 palavras corretas.`
+- Após conferir: `8 de 16 palavras corretas.`
 - Vitória: `Parabéns! Você completou a cruzadinha.`
 - Sem nenhuma letra digitada ao conferir: `Preencha ao menos uma palavra antes de conferir.`
 
 ## 7. Critérios de aceitação
 
-1. O tabuleiro exibe 14 palavras da lista oficial e cada uma cruza com ao menos uma outra.
+1. O tabuleiro exibe as 16 palavras da lista oficial e cada uma cruza com ao menos uma outra.
 2. As pistas aparecem numeradas e separadas em Horizontais e Verticais, coerentes com os
    números mostrados nas casas do tabuleiro.
 3. Clicar numa casa jogável e digitar uma letra escreve a letra em maiúscula e move o cursor
@@ -144,7 +144,7 @@ caixa alta, peso alto e `letter-spacing` aumentado.
 4. Casas bloqueadas não recebem foco nem aceitam digitação.
 5. O botão **Conferir** marca visualmente, e de forma distinta, as palavras corretas e as
    incorretas.
-6. O contador mostra o número de palavras corretas no formato `X de 14 palavras`.
+6. O contador mostra o número de palavras corretas no formato `X de 16 palavras`.
 7. O botão **Reiniciar** limpa todas as letras, remove as marcações e zera o contador.
 8. Nenhuma pista contém a resposta, parte dela ou a sigla por extenso, e nenhuma ultrapassa
    15 palavras.
@@ -159,7 +159,7 @@ caixa alta, peso alto e `letter-spacing` aumentado.
 ## 8. Palavras e pistas
 
 Grafia de tabuleiro em maiúsculas, sem acento e sem espaço. As 16 pistas estão escritas; o
-tabuleiro usa 14 delas (as duas restantes ficam como reserva para ajuste de cruzamentos).
+tabuleiro usa todas as 16, encaixadas em uma grade de 13 x 16.
 
 | # | Resposta | Letras | Pista |
 |---|----------|--------|-------|
@@ -188,10 +188,10 @@ Cada etapa é um commit. Distribuir em pelo menos 2 dias diferentes.
 |---|-------|---------|-----------------|
 | 1 | Base do projeto | `.gitignore`, `AGENTS.md`, `docs/especificacao.md`, `README.md` inicial | `docs: adiciona especificacao e guia do projeto` |
 | 2 | Montagem do tabuleiro | Array `PALAVRAS` com posições validadas e esqueleto do `index.html` | `feat: define palavras, pistas e posicoes do tabuleiro` |
-| 3 | Render da grade | Grade e numeração geradas por JS a partir de `PALAVRAS` | `feat: adiciona tabuleiro com 14 palavras` |
+| 3 | Render da grade | Grade e numeração geradas por JS a partir de `PALAVRAS` | `feat: adiciona tabuleiro com 16 palavras cruzadas` |
 | 4 | Pistas | Listas Horizontais e Verticais renderizadas e numeradas | `feat: exibe pistas horizontais e verticais` |
 | 5 | Digitação | Entrada nas casas, avanço automático e navegação por teclado | `feat: permite digitar letras nas casas` |
-| 6 | Conferência e placar | `conferir()`, marcação de certo/errado e contador `X de 14` | `feat: implementa botao Conferir e contador de acertos` |
+| 6 | Conferência e placar | `conferir()`, marcação de certo/errado e contador `X de 16` | `feat: implementa botao Conferir e contador de acertos` |
 | 7 | Reiniciar | Limpeza do tabuleiro, das marcações e do placar | `feat: implementa botao Reiniciar` |
 | 8 | Identidade visual | Paleta, painéis, botões e estados visuais no `style.css` | `style: aplica identidade visual inspirada em Dofus` |
 | 9 | Responsividade e polimento | Layout em celular, foco visível, mensagem de vitória | `style: ajusta layout para telas pequenas` |
