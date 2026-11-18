@@ -11,15 +11,26 @@ Leia a pista, descubra o termo e digite as letras direto nas casas do tabuleiro.
 ## Como jogar
 
 1. Leia as pistas, separadas em **Horizontais** e **Verticais**.
-2. Clique na casa numerada correspondente à pista e digite a palavra. O cursor avança sozinho
-   para a próxima casa.
-3. Use as **setas** para mover o cursor e **Backspace** para apagar.
-4. Clique em **Conferir** para ver quais palavras estão certas e quais estão erradas.
-5. O contador mostra quantas palavras você já acertou (por exemplo, `8 de 16 palavras`).
-6. Clique em **Reiniciar** para limpar o tabuleiro e começar de novo.
+2. Clique na pista (ou na casa numerada) e digite a palavra. O cursor avança sozinho para a
+   próxima casa.
+3. Clique em **Conferir** para ver quais palavras estão certas e quais estão erradas. Cada
+   pista recebe um selo: *certa*, *errada* ou *faltam letras*.
+4. O contador mostra quantas palavras você já acertou (por exemplo, `8 de 16 palavras`).
+5. Clique em **Reiniciar** para limpar o tabuleiro e começar de novo.
 
 As respostas são escritas em **letras maiúsculas, sem acento e sem espaço** — por exemplo,
-`MEMORIADEMASSA`.
+`MEMORIADEMASSA`. Se você digitar com acento, o jogo converte sozinho (`ó` vira `O`).
+
+### Atalhos de teclado
+
+| Tecla | Ação |
+|-------|------|
+| Letras | Escreve na casa e avança para a próxima |
+| Setas | Movem o cursor pelo tabuleiro, pulando as casas bloqueadas |
+| Espaço | Troca entre a palavra horizontal e a vertical de um cruzamento |
+| Tab / Shift+Tab | Vai para a próxima palavra / palavra anterior |
+| Backspace | Apaga a letra e volta uma casa |
+| Home / End | Vai para a primeira / última casa da palavra |
 
 ## Palavras e pistas
 
@@ -79,6 +90,16 @@ Opcionalmente, para testar servido por HTTP, como no GitHub Pages:
 ```bash
 npx serve .
 ```
+
+## O tabuleiro
+
+As 16 palavras foram encaixadas numa grade de **13 linhas por 16 colunas**, com **16
+cruzamentos** — cada palavra cruza pelo menos uma outra. O layout foi gerado e validado por
+script, garantindo que não exista nenhuma sequência de letras não intencional na grade e que
+todas as interseções tenham letras coincidentes.
+
+Todo o tabuleiro (casas, numeração, pistas e gabarito) é derivado de um único array `PALAVRAS`
+em [script.js](script.js): para trocar uma palavra ou uma pista, basta editar esse array.
 
 ## Identidade visual
 
