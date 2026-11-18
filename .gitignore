@@ -1,0 +1,40 @@
+# Dependências
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build / saída
+dist/
+build/
+.cache/
+
+# Ambiente e segredos
+.env
+.env.*
+*.key
+*.pem
+
+# Sistema operacional
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# Editores / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs e temporários
+*.log
+npm-debug.log*
+tmp/
+temp/
+.scratch/
+
+# Documentos pessoais (o repositório é público)
+*.pdf
+dados-pessoais*
